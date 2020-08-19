@@ -541,7 +541,7 @@ Figure_S2=ggarrange(sample.gamma[[3]] + labs(title = "Sampled adults", font.labe
   theme(axis.title.x = element_text(size=17)) +
   theme(axis.text.x = element_text(size=15))
 
-Figure_S2
+#Figure_S2
 
 # ggsave(
 #  filename = "Figure_S2.tiff",
