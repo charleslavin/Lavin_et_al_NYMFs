@@ -503,7 +503,7 @@ ntmr.plot = ggplot(ntmr.zones[[1]] %>% spread(key = quantile, value = value),
 
 ntmr.plot
 
-Fig3 = ggarrange(ntmr.plot, R.contributions, labels = c("(a)", "(b)"), hjust = 0.05,  align = "h", nrow=1, ncol = 2, widths = c(1,1.2), font.label=list(size = 20, face = "italic", family = "Times New Roman"))
+Fig3 = ggarrange(ntmr.plot, R.contributions, labels = c("(a)", "(b)"), align = "h", nrow=1, ncol = 2, widths = c(1,1.2), font.label=list(size = 22, face = "italic", family = "Times New Roman"))
 
 Fig3
 
