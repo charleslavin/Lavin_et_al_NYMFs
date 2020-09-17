@@ -316,7 +316,7 @@ Fig2a =  ggplot() +
   geom_histogram(data=samp.TL, aes(x=TL), binwidth = 5, col = "black", fill = "grey66", alpha = .3) +
   geom_histogram(data=parent_size, aes(x=Parent_spawning_TL_cm), binwidth = 5, col = "black", fill = "grey30", alpha = .3) +
   geom_line(data=Fig.2.values, aes(x = range, y = mid, col = variable), size = .9) +
-  geom_ribbon(data=Fig.2.values, aes(x = range, ymin = lower, ymax = upper, fill = variable), alpha = 0.4) +
+  geom_ribbon(data=Fig.2.values, aes(x = range, ymin = lower, ymax = upper, fill = variable), alpha = 0.5) +
   scale_x_continuous(breaks = c(25, 38, 50, 60, 70, 80), limits = c(25,80), labels = c("25", "38", "50", "60", "70", "80")) +
   scale_y_continuous(expand = c(0,0)) +
   scale_color_manual(values = c("grey30", "grey66"), labels = c("Assigned parents", "Sampled adults")) +
@@ -359,7 +359,7 @@ R.success.ratio = R.success %>% dplyr::select(range, quantile, ratio) %>%
   spread(key = quantile, value = ratio)
 
 R = ggplot(R.success.ratio, aes(x = range, y = `50%`)) +
-  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), fill = "deepskyblue1", alpha = .4) +
+  geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), fill = "deepskyblue1", alpha = .25) +
   geom_line(col = "deepskyblue3") +
   geom_segment(aes(x = 38, y = 0, xend = 38, yend = R.success.ratio %>% filter(range == 38.0 ) %>% pull(`50%`)), lty = "dotted", col = "black") +
   scale_x_continuous(expand= c(0,0), breaks = c(25, 38, 50, 60, 70, 80)) +
@@ -488,7 +488,7 @@ ntmr.plot = ggplot(ntmr.zones[[1]] %>% spread(key = quantile, value = value),
     geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), fill = "grey78", alpha = .5) +
     geom_line(col = "grey66") +
     scale_y_continuous(expand = c(0,0)) +
-    scale_x_continuous(breaks = c(0, 10, 20, 30, 38, 50, 60, 70, 80), limits = c(0,80), labels = c("0", "10", "20", "30", "38", "50", "60", "70", "80")) +
+    scale_x_continuous(breaks = c(0, 10, 20, 30, 40, 50, 60, 70, 80), limits = c(0,80), labels = c("0", "10", "20", "30", "40", "50", "60", "70", "80")) +
     labs(y=expression(Probability~density %+-% `95%CI`), x="Total length (cm)") + 
     theme_classic()+
     theme(axis.title.y = element_text(size=22)) +
