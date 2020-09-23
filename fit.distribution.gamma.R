@@ -54,7 +54,7 @@ fit.distribution.gamma = function(data, boot, range) {
   myplot.2 = ggplot(quants %>% spread(key = quantile, value = value), 
                     aes(y = `50%`, x = range)) +
     geom_histogram(data = data.frame(x = data), aes(x = x, y=..density..), 
-                   binwidth=5, colour="grey40", fill="white") + 
+                   binwidth=5, boundary=5, colour="grey40", fill="white") + 
     geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), fill = "grey", alpha = .5) +
     geom_line(col = "black") +
     scale_y_continuous(expand = c(0,0)) +

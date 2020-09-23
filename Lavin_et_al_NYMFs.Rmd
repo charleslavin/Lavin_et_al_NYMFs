@@ -1,7 +1,7 @@
 ---
-title: "NYMFs: the importance of minimum size limits to preserve the numerous, young, mature fishes and spawning stock biomass "
-author: "C. Lavin, G. Jones, H. Harrison"
-date: "19/08/2020"
+title: "Minimum size limits and the reproductive value of numerous, young, mature female fish in a coral reef fishery"
+author: "C. Lavin, G. Jones, D. Williamson, H. Harrison"
+date: "23/09/2020"
 output: html_document
 ---
 
@@ -37,17 +37,20 @@ samp.1 = samp %>% filter(! is.na(TL)) %>%
 
 samp.TL = samp.1[,16:17]
 
-samp.NYM = samp.TL %>% filter(TL>=25 & TL<=38) #NYMFFs
-samp.BOF = samp.TL %>% filter(TL>=60) #BOFFFs
+#number of NYMFFs sampled
+samp.NYM = samp.TL %>% filter(TL>=25 & TL<=38)
+
+#above MSL fish sampled
+samp.MSL = samp.TL %>% filter(TL>38)
 
 
 #average size at sample
 samp.1 %>% summarise(mean = mean(TL), se = sd(TL)/ sqrt(n()))
 summary(samp.1$TL)
 
+#location (reef) of samples
 parent.loc <- samp.1 %>% dplyr::select(ID, REEF) %>% rename(Parent = ID)
 
-summary(samp.1$TL)
 ```
 
 
@@ -86,10 +89,8 @@ parent_size %>% summarise(mean = mean(Parent_spawning_TL_cm), se = sd(Parent_spa
 
 summary(parent_size$Parent_spawning_TL_cm)
 
-#NYMFs
+# number of NYMFs assigned to offspring
 parent_size %>% filter(Parent_spawning_TL_cm <= 38)
-#BOFFs
-parent_size %>% filter(Parent_spawning_TL_cm >= 60)
 
 ```
 
@@ -99,11 +100,11 @@ parent_size %>% filter(Parent_spawning_TL_cm >= 60)
 ```{r}
 gki.abundance = read.csv(file = "Great Keppel Island Coral Trout Abundance data.csv") 
 
-#focal NTMR
+#focal NTMRs
 ntmr = gki.abundance %>% dplyr::select(- FORK.LENGTH) %>%
   uncount(ABUNDANCE) %>% filter(YEAR %in% seq(2007,2013,1), ZONE == "NTR", SITE %in% c("GK5", "GK6", "M1", "M2", "M3", "M4", "H1", "H2"))
 
-#Green zones
+#Green zones (NTMRs)
 green = gki.abundance %>% dplyr::select(- FORK.LENGTH) %>%
   uncount(ABUNDANCE) %>% filter(YEAR %in% seq(2007,2013,1), ZONE == "NTR")
 
@@ -116,24 +117,16 @@ green.zones <- fit.distribution.gamma(green %>% pull(TOTAL.LENGTH), boot = 99, r
 ntmr.zones <- fit.distribution.gamma(ntmr %>% pull(TOTAL.LENGTH), boot = 99, range = seq(0,80, by = 0.1))
 
 
-#Blue zones
+#Blue zones (fished)
 blue = gki.abundance %>% dplyr::select(- FORK.LENGTH) %>%
   uncount(ABUNDANCE) %>% filter(YEAR %in% seq(2007,2013,1), ZONE == "FISHED")
 blue.zones <- fit.distribution.gamma(blue %>% pull(TOTAL.LENGTH), boot = 99, range = seq(0,80, by = 0.1))
 
 ```
 
-##b. Defining BOFFFs
+##b. Defining NYMFFs
 
-## For the purpose of this study we explicitly define BOFFFS as the largest 5th percentile of coral trout observed in unfished populations (NTMRs) in the Keppel Islands between 2007 and 2013. This corresponds to individuals 60cm and above.
-```{r}
-green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsum(value) / sum(value),3)) %>% filter(percentile >= 0.95)
-```
-## defining 0-25 cm TL fish
-```{r}
-green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsum(value) / sum(value),3)) %>% filter(range == 0 | range == 25) 
-```
-
+## For the purpose of this study we explicitly define NYFFs as fish from the smallest size at sexual maturity (25 cm TL) up until the MSL in the GBRMP (38 cm TL), of coral trout observed in unfished populations (NTMRs) in the Keppel Islands between 2007 and 2013.
 
 ## Defining NYMFs, 25-38 cm TL
 ```{r}
@@ -141,22 +134,14 @@ green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsu
 0.603-0.211
 ```
 
-## ex. individuals 38 - 51
-```{r}
-green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsum(value) / sum(value),3)) %>% filter(range == 38 | range == 51) 
-0.868-0.603
-```
-
-## ex. individuals 51 - 80
-```{r}
-green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsum(value) / sum(value),3)) %>% filter(range == 51 | range == 80) 
-1-0.868
-```
-
-## ex. all individuals > 38 cm TL
+## all individuals > 38 cm TL
 ```{r}
 green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsum(value) / sum(value),3)) %>% filter(range == 38 | range == 80) 
+```
 
+# The largest 5% percentile of fish
+```{r}
+green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsum(value) / sum(value),3)) %>% filter(percentile >= 0.95)
 ```
 
 ##c. Density and biomass
@@ -313,22 +298,21 @@ Fig.2.values = Fig.2.models %>%
   mutate(upper = `97.5%`*150/30)
 
 Fig2a =  ggplot() + 
-  geom_histogram(data=samp.TL, aes(x=TL), binwidth = 5, col = "black", fill = "grey66", alpha = .3) +
-  geom_histogram(data=parent_size, aes(x=Parent_spawning_TL_cm), binwidth = 5, col = "black", fill = "grey30", alpha = .3) +
+  geom_histogram(data=samp.TL, aes(x=TL), binwidth = 5, boundary=5, col = "black", fill = "grey66", alpha = .3) +
+  geom_histogram(data=parent_size, aes(x=Parent_spawning_TL_cm), binwidth = 5, boundary=5, col = "black", fill = "grey30", alpha = .3) +
   geom_line(data=Fig.2.values, aes(x = range, y = mid, col = variable), size = .9) +
   geom_ribbon(data=Fig.2.values, aes(x = range, ymin = lower, ymax = upper, fill = variable), alpha = 0.5) +
-  scale_x_continuous(breaks = seq(25,80,5), labels = c("≤25", "26-30", "31-35", "36-40", "41-45", "46-50", "51-55", "56-60", "61-65", "66-70", "71-75", "76-80"), limits=c(25,80)) +
+  scale_x_continuous(breaks = seq(25,80,5), limits=c(25,80)) +
   scale_y_continuous(expand = c(0,0)) +
   scale_color_manual(values = c("grey30", "grey66"), labels = c("Assigned parents", "Sampled adults")) +
   scale_fill_manual(values = c("grey20", "grey78"), labels = c("Assigned parents", "Sampled adults")) +
   labs(y=expression(Probability~density %+-% `95%CI`~of~italic("P.maculatus")), x="Total length (cm)") + 
   theme_classic() + 
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
   theme(legend.position = c(.8,.8), legend.title = element_blank(), legend.text = element_text(size=17)) +
   theme(axis.title.y = element_text(size=22)) +
   theme(axis.text.y = element_text(size=22)) +
   theme(axis.title.x = element_text(size=22)) +
-  theme(axis.text.x = element_text(size=18)) +
+  theme(axis.text.x = element_text(size=22)) +
   theme(text = element_text(family = "Times New Roman"))
 
 Fig2a
@@ -384,17 +368,18 @@ Fig2 = ggarrange(Fig2a, R, labels = c("(a)", "(b)"), align = "h", nrow = 1, ncol
 
 Fig2
 
-ggsave(
-  filename = "Figure_2.tiff",
-  plot = Fig2,
-  width = 14, 
-  height = 7,
-  dpi = 300,
-  units = "in",
-  device = "tiff"
-  )
+#ggsave(
+#  filename = "Figure_2.tiff",
+#  plot = Fig2,
+#  width = 14, 
+#  height = 7,
+#  dpi = 300,
+#  units = "in",
+#  device = "tiff"
+#  )
 ```
 
+# Calculating the likely reproductive success of above MSL-sized fish (>38 cm TL) versus fish below the MSL (<=38)
 ```{r}
 bind_rows(
   R.success.ratio %>% filter(range <= 38 ) %>% mutate(c025 = cumsum(`2.5%`), c500 = cumsum(`50%`), c975 = cumsum(`97.5%`)) %>%
@@ -408,7 +393,7 @@ bind_rows(
   mutate(r = BOFFFs / NYMFs )
 
 ```
-## From this relationship, we estimate the likely reproductive success of BOFFFs is 3.6 times greater than that of NYMFs (95% CI [3.1, 4.2]). However, BOFFFs are intrinsically less abundant.
+## From this relationship, we estimate the likely reproductive success of fish above the MSL (38 cm TL) is 5.4 times greater than that of NYMFs (95% CI [4.6, 6.8]).
 
 ```{r}
 c.ratio = R.success %>% dplyr::select(range, quantile, corrected.ratio) %>%
@@ -433,6 +418,7 @@ R.contributions = ggplot(c.ratio, aes(x = range, y = `50%`)) +
 R.contributions
 ```
 
+#Calculating the length that displays the highest replenishment contribution
 ```{r}
 c.ratio %>% filter(`2.5%` == max(`2.5%`))
 c.ratio %>% filter(`50%` == max(`50%`))
@@ -440,7 +426,8 @@ c.ratio %>% filter(`97.5%` == max(`97.5%`))
 ```
 ## peak 39.1 (95% CI [36.9, 41])
 
-
+##########################
+# HERE - need Hugo's 1.8 times analysis
 ```{r}
 bind_rows(c.ratio %>% filter(range >= 25 ) %>% mutate(c025 = cumsum(`2.5%`), c500 = cumsum(`50%`), c975 = cumsum(`97.5%`)) %>%
   filter(range == 38) %>% dplyr::select(range, c025, c500, c975),
@@ -452,27 +439,15 @@ c.ratio %>% filter(range > 38 ) %>% mutate(c025 = cumsum(`2.5%`), c500 = cumsum(
 
 ```
 ## Cumulatively, in an unfished population of coral trout NYMFFs contribute approximately 56% of what all fish above 38 cm produce (95% CI [0.44, 0.66])
+##########################
 
-
-
+# Contribution of NYMFFs to local replenishment
 ```{r}
 c.ratio %>%  mutate(c025 = cumsum(`2.5%`) / sum(`2.5%`), c500 = cumsum(`50%`) / sum(`50%`), c975 = cumsum(`97.5%`) / sum(`97.5%`)) %>% filter(range == 38 )
 ```
 ## NYMFs contribute 36% 95 CI [31,40] of juvenile fish that recruited to the island group
 
-
-
-```{r}
-c.ratio %>%  mutate(c025 = cumsum(`2.5%`) / sum(`2.5%`), c500 = cumsum(`50%`) / sum(`50%`), c975 = cumsum(`97.5%`) / sum(`97.5%`)) %>% filter(range == 38 | range == 80)
-```
-## BOFFFss contribute 9% 95 CI [9,9] of juvenile fish that recruited to the island group
-
-
-```{r}
-c.ratio %>%  mutate(c025 = cumsum(`2.5%`) / sum(`2.5%`), c500 = cumsum(`50%`) / sum(`50%`), c975 = cumsum(`97.5%`) / sum(`97.5%`)) %>% filter(range == 70 )
-```
-
-# # of NYMF vs # of above-MSL from UVC
+# number of NYMF vs number of above-MSL from UVC
 ```{r}
 ntmr.NYMF = ntmr %>% filter(TOTAL.LENGTH >= 25 & TOTAL.LENGTH <= 38) #369
 ntmr.BOF = ntmr %>% filter(TOTAL.LENGTH > 38) # 474 individuals above MSL
@@ -487,18 +462,17 @@ ntmr.BOF = ntmr %>% filter(TOTAL.LENGTH > 38) # 474 individuals above MSL
 ```{r}
 ntmr.plot = ggplot(ntmr.zones[[1]] %>% spread(key = quantile, value = value), 
                     aes(y = `50%`, x = range)) +
-    geom_histogram(data = data.frame(x = ntmr$TOTAL.LENGTH), aes(x = x, y=..density..), binwidth=5, colour="black", fill="grey66", alpha = .3) + 
+    geom_histogram(data = data.frame(x = ntmr$TOTAL.LENGTH), aes(x = x, y=..density..), binwidth=5, boundary=5, colour="black", fill="grey66", alpha = .3) + 
     geom_ribbon(aes(ymin = `2.5%`, ymax = `97.5%`), fill = "grey78", alpha = .5) +
     geom_line(col = "grey66") +
     scale_y_continuous(expand = c(0,0)) +
-    scale_x_continuous(breaks = seq(0,80,5), labels = c("", "6-10", "", "16-20", "", "25-30", "", "36-40", "", "46-50", "", "56-60", "", "66-70", "", "76-80", ""), limits=c(0,80)) +
+    scale_x_continuous(breaks = seq(0,80,5),limits=c(0,80), labels=c("0", "", "10", "", "20", "", "30", "", "40", "", "50", "", "60", "", "70", "", "80")) +
     labs(y=expression(Probability~density %+-% `95%CI`), x="Total length (cm)") + 
     theme_classic() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) +
     theme(axis.title.y = element_text(size=22)) +
     theme(axis.text.y = element_text(size=22)) +
     theme(axis.title.x = element_text(size=22)) +
-    theme(axis.text.x = element_text(size=16)) +
+    theme(axis.text.x = element_text(size=22)) +
     theme(text = element_text(family = "Times New Roman"))
 
 ntmr.plot
@@ -524,60 +498,62 @@ ggsave(
 ```{r}
 FigS1 =  ggplot(parent_size %>% dplyr::select(REEF, Parent_sample_TL_cm, Parent_spawning_TL_cm) %>%
   gather(key = key, value = value, -REEF), aes(x = value, fill = key)) +
-  geom_histogram(position = "dodge", binwidth = 5) + 
+  geom_histogram(position = "dodge", binwidth = 5, boundary=5) + 
+  scale_x_continuous(breaks = seq(25,80,5), limits=c(25,80)) +
   scale_y_continuous(expand = c(0,0)) +
-  scale_x_continuous(expand = c(0,0), breaks =  seq(25, 70, 5)) +
   labs(y = expression(`#`~italic("P. maculatus")), x = "Total Length (cm)") +
-  scale_fill_manual(values = c("#048BA8", "#2E4057"), labels=c("Length at sampling", "Length at spawning")) +
+  scale_fill_manual(values = c("grey78", "grey28"), labels=c("Length at sampling", "Length at spawning")) +
   theme_classic() + theme(legend.position = c(.9,.94), legend.title = element_blank()) +
   theme(text = element_text(family = "Times New Roman")) +
-  theme(legend.text = element_text(size=13)) +
-  theme(axis.title.y = element_text(size=17)) +
-  theme(axis.text.y = element_text(size=15)) +
-  theme(axis.title.x = element_text(size=17)) +
-  theme(axis.text.x = element_text(size=15))
+  theme(legend.text = element_text(size=17)) +
+  theme(axis.title.y = element_text(size=22)) +
+  theme(axis.text.y = element_text(size=26)) +
+  theme(axis.title.x = element_text(size=24)) +
+  theme(axis.text.x = element_text(size=22))
 
 FigS1
 
-# ggsave(
-#  filename = "Figure_S1.tiff",
-#  plot = FigS1,
-#  width = 10, 
-#  height = 7,
-#  dpi = 300,
-#  units = "in",
-#  device = "tiff"
-#  )
+ ggsave(
+  filename = "Figure_S1.tiff",
+  plot = FigS1,
+  width = 12, 
+  height = 7,
+  dpi = 300,
+  units = "in",
+  device = "tiff"
+  )
 ```
 
 ## S2
 ```{r}
-Figure_S2=ggarrange(sample.gamma[[3]] + labs(title = "Sampled adults", font.label=list(size = 20, family = "Times New Roman")) +
+Figure_S2=ggarrange(sample.gamma[[3]] + labs(title = "Sampled adults", font.label=list(size = 22, family = "Times New Roman")) + scale_x_continuous(breaks = seq(25,80,5), limits=c(25,80)) +
+  scale_y_continuous(expand = c(0,0)) +
   theme(text = element_text(family = "Times New Roman")) +
-  theme(legend.text = element_text(size=13)) +
-  theme(axis.title.y = element_text(size=17)) +
-  theme(axis.text.y = element_text(size=15)) +
-  theme(axis.title.x = element_text(size=17)) +
-  theme(axis.text.x = element_text(size=15)), 
-          assign.gamma[[3]] + labs(title = "Assigned parents", font.label=list(size = 20, family = "Times New Roman")) + rremove("y.title"),
-          labels = c("(a)", "(b)"), align = "h", nrow = 1, ncol = 2, font.label=list(size = 20, face = "italic", family = "Times New Roman")) +
+  theme(axis.title.y = element_text(size=22)) +
+  theme(axis.text.y = element_text(size=22)) +
+  theme(axis.title.x = element_text(size=22)) +
+  theme(axis.text.x = element_text(size=18)),
+          assign.gamma[[3]] + labs(title = "Assigned parents", font.label=list(size = 22, family = "Times New Roman")) + scale_x_continuous(breaks = seq(25,80,5), limits=c(25,80)) +
+  scale_y_continuous(expand = c(0,0)) +
   theme(text = element_text(family = "Times New Roman")) +
-  theme(legend.text = element_text(size=13)) +
-  theme(axis.title.y = element_text(size=17)) +
-  theme(axis.text.y = element_text(size=15)) +
-  theme(axis.title.x = element_text(size=17)) +
-  theme(axis.text.x = element_text(size=15))
+  theme(axis.title.y = element_text(size=22)) +
+  theme(axis.text.y = element_text(size=22)) +
+  theme(axis.title.x = element_text(size=22)) +
+  theme(axis.text.x = element_text(size=18)) + 
+    rremove("y.title"),
+          labels = c("(a)", "(b)"), align = "h", nrow = 1, ncol = 2, font.label=list(size = 20, face = "italic", family = "Times New Roman"))
 
-#Figure_S2
+Figure_S2
 
-# ggsave(
-#  filename = "Figure_S2.tiff",
-#  plot = Figure_S2,
-#  width = 10, 
-#  height = 7,
-#  dpi = 300,
-#  units = "in",
-#  device = "tiff"
-#  )
+
+ ggsave(
+  filename = "Figure_S2.tiff",
+  plot = Figure_S2,
+  width = 12, 
+  height = 7,
+  dpi = 300,
+  units = "in",
+  device = "tiff"
+  )
 ```
 
