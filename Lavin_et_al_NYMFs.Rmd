@@ -1,7 +1,7 @@
 ---
 title: "Minimum size limits and the reproductive value of numerous, young, mature female fish in a coral reef fishery"
-author: "C. Lavin, G. Jones, D. Williamson, H. Harrison"
-date: "23/09/2020"
+author: "Charles P. Lavin, Geoffrey P. Jones, David H. Williamson, Hugo B. Harrison"
+date: "29/10/2020"
 output: html_document
 ---
 
@@ -126,7 +126,7 @@ blue.zones <- fit.distribution.gamma(blue %>% pull(TOTAL.LENGTH), boot = 99, ran
 
 ##b. Defining NYMFFs
 
-## For the purpose of this study we explicitly define NYFFs as fish from the smallest size at sexual maturity (25 cm TL) up until the MSL in the GBRMP (38 cm TL), of coral trout observed in unfished populations (NTMRs) in the Keppel Islands between 2007 and 2013.
+## For the purpose of this study we explicitly define NYFFs as fish 25 cm-38 cm TL (below MSL), of coral trout observed in unfished populations (NTMRs) in the Keppel Islands between 2007 and 2013.
 
 ## Defining NYMFs, 25-38 cm TL
 ```{r}
@@ -139,12 +139,7 @@ green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsu
 green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsum(value) / sum(value),3)) %>% filter(range == 38 | range == 80) 
 ```
 
-# The largest 5% percentile of fish
-```{r}
-green.zones[[1]] %>% filter(quantile == "50%") %>% mutate(percentile=round(cumsum(value) / sum(value),3)) %>% filter(percentile >= 0.95)
-```
-
-##c. Density and biomass
+##C. Density and biomass
 ```{r}
 gki.density = gki.abundance %>% 
   filter(YEAR %in% seq(2007,2013,1)) %>%
@@ -189,7 +184,7 @@ t.test(mean ~ ZONE, data = gki.density )
 ## The alternative hypothesis is that the density and biomass of coral trout in blue zones is less than in green zones.
 
 #B. FIT DISTRIBUTIONS
-###Testing to determine distribution of assigned and sampled data, Gamma, Weibull, lnorm, normal 
+##Testing to determine distribution of assigned and sampled data, Gamma, Weibull, lnorm, normal 
 ```{r}
 final_sample = samp.1$TL
 final_assign = parent_size$Parent_spawning_TL_cm
@@ -362,7 +357,7 @@ R = ggplot(R.success.ratio, aes(x = range, y = `50%`)) +
 R
 ```
 
-#Figure 2
+## Figure 2
 ```{r}
 Fig2 = ggarrange(Fig2a, R, labels = c("(a)", "(b)"), align = "h", nrow = 1, ncol=2, font.label=list(size = 22, face = "italic", family = "Times New Roman"))
 
@@ -379,7 +374,7 @@ Fig2
 #  )
 ```
 
-# Calculating the likely reproductive success of above MSL-sized fish (>38 cm TL) versus fish below the MSL (<=38)
+## Calculating the likely reproductive success of above MSL-sized fish (>38 cm TL) versus fish below the MSL (<=38)
 ```{r}
 bind_rows(
   R.success.ratio %>% filter(range <= 38 ) %>% mutate(c025 = cumsum(`2.5%`), c500 = cumsum(`50%`), c975 = cumsum(`97.5%`)) %>%
@@ -418,7 +413,7 @@ R.contributions = ggplot(c.ratio, aes(x = range, y = `50%`)) +
 R.contributions
 ```
 
-#Calculating the length that displays the highest replenishment contribution
+## Calculating the length that displays the highest replenishment contribution
 ```{r}
 c.ratio %>% filter(`2.5%` == max(`2.5%`))
 c.ratio %>% filter(`50%` == max(`50%`))
@@ -426,28 +421,19 @@ c.ratio %>% filter(`97.5%` == max(`97.5%`))
 ```
 ## peak 39.1 (95% CI [36.9, 41])
 
-##########################
-# HERE - need Hugo's 1.8 times analysis
-```{r}
-bind_rows(c.ratio %>% filter(range >= 25 ) %>% mutate(c025 = cumsum(`2.5%`), c500 = cumsum(`50%`), c975 = cumsum(`97.5%`)) %>%
-  filter(range == 38) %>% dplyr::select(range, c025, c500, c975),
-c.ratio %>% filter(range > 38 ) %>% mutate(c025 = cumsum(`2.5%`), c500 = cumsum(`50%`), c975 = cumsum(`97.5%`)) %>%
-  filter(range == 80) %>% dplyr::select(range, c025, c500, c975)) %>%
-  gather(key = key, value = value, -range) %>% spread(key = range, value = value) %>% 
-  rename(NYMFs = `38`, BOFFFs = `80`) %>% 
-  mutate(r = NYMFs / BOFFFs)
 
-```
-## Cumulatively, in an unfished population of coral trout NYMFFs contribute approximately 56% of what all fish above 38 cm produce (95% CI [0.44, 0.66])
-##########################
-
-# Contribution of NYMFFs to local replenishment
+## Contribution of NYMFFs to local replenishment
 ```{r}
-c.ratio %>%  mutate(c025 = cumsum(`2.5%`) / sum(`2.5%`), c500 = cumsum(`50%`) / sum(`50%`), c975 = cumsum(`97.5%`) / sum(`97.5%`)) %>% filter(range == 38 )
+c.ratio %>%  mutate(c025 = cumsum(`2.5%`) / sum(`2.5%`), c500 = cumsum(`50%`) / sum(`50%`), c975 = cumsum(`97.5%`) / sum(`97.5%`)) %>% filter(range == 38)
 ```
 ## NYMFs contribute 36% 95 CI [31,40] of juvenile fish that recruited to the island group
 
-# number of NYMF vs number of above-MSL from UVC
+## Contributions of above-MSL fish equal to that of sub-MSL fish
+```{r}
+c.ratio %>%  mutate(c025 = cumsum(`2.5%`) / sum(`2.5%`), c500 = cumsum(`50%`) / sum(`50%`), c975 = cumsum(`97.5%`) / sum(`97.5%`)) %>% filter(range == 38 | range == 49)
+```
+
+## number of NYMF vs number of above-MSL from UVC
 ```{r}
 ntmr.NYMF = ntmr %>% filter(TOTAL.LENGTH >= 25 & TOTAL.LENGTH <= 38) #369
 ntmr.BOF = ntmr %>% filter(TOTAL.LENGTH > 38) # 474 individuals above MSL
@@ -458,7 +444,7 @@ ntmr.BOF = ntmr %>% filter(TOTAL.LENGTH > 38) # 474 individuals above MSL
 #100 indiv. less < 25 cm TL
 ```
 
-#Figure 3
+## Figure 3
 ```{r}
 ntmr.plot = ggplot(ntmr.zones[[1]] %>% spread(key = quantile, value = value), 
                     aes(y = `50%`, x = range)) +
@@ -481,15 +467,15 @@ Fig3 = ggarrange(ntmr.plot, R.contributions, labels = c("(a)", "(b)"), align = "
 
 Fig3
 
-ggsave(
-  filename = "Figure_3.tiff",
-  plot = Fig3,
-  width = 14, 
-  height = 7,
-  dpi = 300,
-  units = "in",
-  device = "tiff"
-  )
+#ggsave(
+#  filename = "Figure_3.tiff",
+#  plot = Fig3,
+#  width = 14, 
+#  height = 7,
+#  dpi = 300,
+#  units = "in",
+#  device = "tiff"
+#  )
 ```
 
 # Supplementary Figure
@@ -513,15 +499,15 @@ FigS1 =  ggplot(parent_size %>% dplyr::select(REEF, Parent_sample_TL_cm, Parent_
 
 FigS1
 
- ggsave(
-  filename = "Figure_S1.tiff",
-  plot = FigS1,
-  width = 12, 
-  height = 7,
-  dpi = 300,
-  units = "in",
-  device = "tiff"
-  )
+# ggsave(
+#  filename = "Figure_S1.tiff",
+#  plot = FigS1,
+#  width = 12, 
+#  height = 7,
+#  dpi = 300,
+#  units = "in",
+#  device = "tiff"
+#  )
 ```
 
 ## S2
@@ -546,14 +532,14 @@ Figure_S2=ggarrange(sample.gamma[[3]] + labs(title = "Sampled adults", font.labe
 Figure_S2
 
 
- ggsave(
-  filename = "Figure_S2.tiff",
-  plot = Figure_S2,
-  width = 12, 
-  height = 7,
-  dpi = 300,
-  units = "in",
-  device = "tiff"
-  )
+# ggsave(
+#  filename = "Figure_S2.tiff",
+#  plot = Figure_S2,
+#  width = 12, 
+#  height = 7,
+#  dpi = 300,
+#  units = "in",
+#  device = "tiff"
+#  )
 ```
 
